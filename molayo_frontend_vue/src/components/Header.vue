@@ -63,7 +63,7 @@ function nav_button_clicked(target: string){
 
     <BCollapse id="nav-collapse" is-nav>
       <BNavbarNav>
-        <BNavItem><BLink href="https://api.molayo.work/docs" target="_blank"><IBiLightning-Fill style="color: red" /> API</BLink></BNavItem>
+        <BNavItem><BLink href="https://molayo.work/api/docs" target="_blank"><IBiLightning-Fill style="color: red" /> API</BLink></BNavItem>
         <BNavItem @click="nav_button_clicked('deep_learning')"><IBiPostage-Fill style="color: red" /> 딥러닝</BNavItem>
         <BNavItem @click="nav_button_clicked('post_list')"><IBiCard-List style="color: white;"/> 게시판</BNavItem>
       </BNavbarNav>

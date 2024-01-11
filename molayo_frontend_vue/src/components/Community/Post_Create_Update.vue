@@ -44,7 +44,7 @@ function submit_button_clicked() {
         body: body.value
     }
 
-    axios.post('https://api.molayo.work/posts', post_data, auth_header.value.data).then((res: any) => {
+    axios.post('https://molayo.work/api/posts', post_data, auth_header.value.data).then((res: any) => {
 
         router.push({
             path: "/posts/" + String(res.data)
@@ -61,7 +61,7 @@ function submit_button_clicked() {
 if (route.path != '/posts/create') {
     let post_id = route.params.post_id
 
-    axios.get('https://api.molayo.work/posts/' + String(post_id)).then((res: any) => {
+    axios.get('https://molayo.work/api/posts/' + String(post_id)).then((res: any) => {
         title.value = res.data.title
         body.value = res.data.body
     })
@@ -82,7 +82,7 @@ function edit_button_clicked() {
         body: body.value
     }
 
-    axios.put('https://api.molayo.work/posts/' + String(post_id), put_data, auth_header.value.data).then((res: any) => {
+    axios.put('https://molayo.work/api/posts/' + String(post_id), put_data, auth_header.value.data).then((res: any) => {
         router.push({
             path: "/posts/" + String(post_id)
         })
@@ -104,7 +104,7 @@ const modules = [
                 const formData = new FormData();
                 formData.append("file", file);
 
-                axios.post('https://api.molayo.work/posts/upload-image', formData, auth_header.value.data)
+                axios.post('https://molayo.work/api/posts/upload-image', formData, auth_header.value.data)
                 .then((res: any) => {
                 resolve(res.data.url);
                 })

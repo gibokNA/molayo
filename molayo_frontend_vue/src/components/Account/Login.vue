@@ -37,7 +37,7 @@ function login_button_clicked() {
     formData.append("username", login_username.value)
     formData.append("password", login_password.value)
 
-    axios.post('https://api.molayo.work/users/token', formData).then((res: any) => {
+    axios.post('https://molayo.work/api/users/token', formData).then((res: any) => {
 
         is_login.value = true
         username.value = login_username.value

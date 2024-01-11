@@ -38,7 +38,7 @@ const body = ref("")
 const comments = reactive({data: [] as any})
 const comments_page = ref(1)
 
-axios.get('https://api.molayo.work/posts/' + String(id.value)).then((res: any) => {
+axios.get('https://molayo.work/api/posts/' + String(id.value)).then((res: any) => {
     id.value = res.data.id
     post_username.value = res.data.username
     nickname.value = res.data.nickname
@@ -63,7 +63,7 @@ const is_delete_button_clicked = ref(false)
 
 function delete_button_clicked() {
 
-    axios.delete('https://api.molayo.work/posts/' + String(id.value), auth_header.value.data).then((res: any) => {
+    axios.delete('https://molayo.work/api/posts/' + String(id.value), auth_header.value.data).then((res: any) => {
         modal_title.value = "삭제성공"
         modal_text.value = "삭제완료. 2초뒤 메인페이지로 이동합니다."
         is_modal_show.value = true
@@ -91,10 +91,10 @@ function submit_comment_button_clicked() {
         "text": comment_input_text.value
     }
 
-    axios.post('https://api.molayo.work/posts/' + String(id.value) + '/comments', post_data, auth_header.value.data).then((res: any) => {
+    axios.post('https://molayo.work/api/posts/' + String(id.value) + '/comments', post_data, auth_header.value.data).then((res: any) => {
         comment_input_text.value = ""
 
-        axios.get('https://api.molayo.work/posts/' + String(id.value) + '/comments?offset=0&limit=50').then((res: any) => {
+        axios.get('https://molayo.work/api/posts/' + String(id.value) + '/comments?offset=0&limit=50').then((res: any) => {
             comments.data = res.data.comments.reverse()
             comment_count.value = res.data.comment_count
 
@@ -120,7 +120,7 @@ function comment_pagenation_clicked(event: any, page: number) {
 function request_comment_list(page: number) {
     let offset = String((Math.ceil(comment_count.value / 50) - page) * 50)
 
-    axios.get('https://api.molayo.work/posts/' + String(id.value) + '/comments?offset=' + offset + '&limit=50').then((res: any) => {
+    axios.get('https://molayo.work/api/posts/' + String(id.value) + '/comments?offset=' + offset + '&limit=50').then((res: any) => {
         comments.data = res.data.comments.reverse()
         comment_count.value = res.data.comment_count
     })
@@ -134,7 +134,7 @@ function keydown(event: any) {
 }
 
 function comment_delete_button_clicked(comment_id: number) {
-    axios.delete('https://api.molayo.work/posts/' + String(id.value) + '/' + String(comment_id), auth_header.value.data).then((res: any) => {
+    axios.delete('https://molayo.work/api/posts/' + String(id.value) + '/' + String(comment_id), auth_header.value.data).then((res: any) => {
         request_comment_list(comments_page.value)
     }).catch((error: any) => {
         let error_modal_title = "댓글 삭제 실패"

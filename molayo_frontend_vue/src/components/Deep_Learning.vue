@@ -42,7 +42,7 @@ function submit_button_clicked() {
     let formData = new FormData();
     formData.append("file", file.value);
 
-    axios.post('https://api.molayo.work/deeplearning', formData, auth_header.value.data).then((res: any) => {
+    axios.post('https://molayo.work/api/deeplearning', formData, auth_header.value.data).then((res: any) => {
         deeplearning_predict.value = res.data
 
         is_now_processing.value = false

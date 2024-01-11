@@ -63,7 +63,7 @@ function register_button_clicked(){
     formData.append("password2", register_password_2.value)
     formData.append("nickname", register_nickname.value)
 
-    axios.post('https://api.molayo.work/users', formData).then((res: any) => {
+    axios.post('https://molayo.work/api/users', formData).then((res: any) => {
         if (res.data == true) {
             modal_title.value = "회원가입 성공"
             modal_text.value = "2초뒤 로그인 페이지로 이동합니다."

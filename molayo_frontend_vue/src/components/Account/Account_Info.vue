@@ -27,7 +27,7 @@ const nickname = ref("")
 const post_count = ref(0)
 const comment_count = ref(0)
 
-axios.get('https://api.molayo.work/users/me', auth_header.value.data).then((res: any) => {
+axios.get('https://molayo.work/api/users/me', auth_header.value.data).then((res: any) => {
     id.value = res.data.id
     nickname.value = res.data.nickname
     post_count.value = res.data.post_count
@@ -40,7 +40,7 @@ const new_nickname = ref("")
 function change_nickname_button_clicked() {
     if (new_nickname.value.length == 0) return
 
-    axios.put('https://api.molayo.work/users/nickname', new_nickname.value, auth_header.value.data).then((res: any) => {
+    axios.put('https://molayo.work/api/users/nickname', new_nickname.value, auth_header.value.data).then((res: any) => {
         nickname.value = new_nickname.value
         new_nickname.value = ""
         is_change_nickname_button_clicked.value = false
@@ -65,7 +65,7 @@ function change_password_button_clicked() {
     formData.append("old_password", change_password_confirm_old_password.value)
     formData.append("new_password", change_password_confirm_new_password.value)
 
-    axios.put('https://api.molayo.work/users/password', formData, auth_header.value.data).then((res: any) => {
+    axios.put('https://molayo.work/api/users/password', formData, auth_header.value.data).then((res: any) => {
         modal_title.value = "비밀번호 변경 성공"
         modal_text.value = "비밀번호 변경에 성공했습니다."
         is_modal_show.value = true
@@ -96,7 +96,7 @@ function request_users_post_list(page: number) {
     let offset = String(50 * (page - 1))
     let limit = "50"
 
-    axios.get('https://api.molayo.work/users/posts', auth_header.value.data).then((res: any) => {
+    axios.get('https://molayo.work/api/users/posts', auth_header.value.data).then((res: any) => {
         users_posts.data = res.data
     })
 }
@@ -109,7 +109,7 @@ function request_users_comment_list(page: number) {
     let offset = String(50 * (page - 1))
     let limit = "50"
 
-    axios.get('https://api.molayo.work/users/comments', auth_header.value.data).then((res: any) => {        
+    axios.get('https://molayo.work/api/users/comments', auth_header.value.data).then((res: any) => {        
         users_comments.data = res.data
     })
 }
@@ -131,7 +131,7 @@ function delete_user_button_clicked() {
     formData.append("username", delete_user_username.value)
     formData.append("password", delete_user_password.value)
 
-    axios.put('https://api.molayo.work/users', formData, auth_header.value.data).then((res: any) => {
+    axios.put('https://molayo.work/api/users', formData, auth_header.value.data).then((res: any) => {
         modal_title.value = "계정 삭제 완료"
         modal_text.value = "2초뒤 메인페이지로 이동합니다."
         is_modal_show.value = true

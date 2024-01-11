@@ -50,7 +50,7 @@ function request_post_list(page: number) {
     let offset = String(50 * (page - 1))
     let limit = "50"
 
-    axios.get('https://api.molayo.work/posts?offset=' + offset + '&limit=' + limit).then((res: any) => {
+    axios.get('https://molayo.work/api/posts?offset=' + offset + '&limit=' + limit).then((res: any) => {
     post_list.data = res.data
 })
 }
@@ -63,7 +63,7 @@ function search_button_clicked(page: number) {
 
     let offset = String(50 * (page - 1))
 
-    axios.get('https://api.molayo.work/posts/search?q=' + search_text.value +
+    axios.get('https://molayo.work/api/posts/search?q=' + search_text.value +
      '&target=' + search_target.value + '&offset=' + offset + '&limit=50').then((res: any) => {
         post_list.data = res.data
      })
