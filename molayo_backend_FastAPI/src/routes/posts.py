@@ -1,12 +1,14 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter, Body, Path, Query, UploadFile
 from sqlmodel import select, or_
-from connection import get_session
+from connection import get_async_session
 from routes.users import get_user
 import time
 
 from models.posts import Post, Post_Create, Post_Update, Comment, Comment_Create, Comment_Read, Post_Read, Post_List_Read
 from models.users import User
+
+from sqlalchemy.orm import selectinload
 
 import uuid, aiofiles
 
@@ -20,7 +22,7 @@ posts_router = APIRouter()
 async def create_post(
         body_data: Annotated[Post_Create, Body()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
     
     if len(body_data.title) == 0 or len(body_data.body) == 0:
@@ -34,7 +36,7 @@ async def create_post(
 
     session.add(user)
     session.add(post)
-    session.commit()
+    await session.commit()
 
     return post.id
 
@@ -44,12 +46,10 @@ async def search_posts(
         target: Annotated[str, Query(description="all, nickname, title 3가지 중 하나 선택하세요.")] = "all",
         offset: Annotated[int, Query(ge=0)] = 0,
         limit: Annotated[int, Query(gt=0, le=50)] = 50,
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     statement = select(Post).order_by(Post.id.desc())
-
-    print(target)
 
     if target == "all":
         statement = statement.where(or_(Post.nickname.contains(q), Post.title.contains(q)))
@@ -59,8 +59,8 @@ async def search_posts(
         statement = statement.where(Post.title.contains(q))
 
     statement = statement.offset(offset).limit(limit)
-
-    searched_data = session.exec(statement).all()
+    result = await session.exec(statement)
+    searched_data = result.all()
 
     return searched_data
 
@@ -68,15 +68,15 @@ async def search_posts(
 @posts_router.get("/{post_id}", response_model=Post_Read)
 async def read_post(
         post_id: Annotated[int, Path()],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
 
     post.view_count += 1
     session.add(post)
-    session.commit()
-    session.refresh(post)
+    await session.commit()
+    await session.refresh(post)
 
     post_dict = post.model_dump()
 
@@ -93,11 +93,12 @@ async def read_post(
 async def read_post_list(
         offset: Annotated[int, Query(ge=0)] = 0,
         limit: Annotated[int, Query(gt=0, le=50)] = 50,
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     statement = select(Post).order_by(Post.id.desc()).offset(offset).limit(limit)
-    post_list = session.exec(statement).all()
+    result = await session.exec(statement)
+    post_list = result.all()
 
     return post_list
 
@@ -107,13 +108,13 @@ async def edit_post(
         post_id: Annotated[int, Path()],
         body_data: Annotated[Post_Update, Body()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     if len(body_data.title) == 0 or len(body_data.body) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
     
     if post.username != user.username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
@@ -123,7 +124,7 @@ async def edit_post(
     post.edited = str(time.time())
     
     session.add(post)
-    session.commit()
+    await session.commit()
 
     return True
 
@@ -132,10 +133,10 @@ async def edit_post(
 async def delete_post(
         post_id: Annotated[int, Path()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
     
     if post.username != user.username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
@@ -143,8 +144,8 @@ async def delete_post(
     user.post_count -= 1
 
     session.add(user)
-    session.delete(post)
-    session.commit()
+    await session.delete(post)
+    await session.commit()
 
     return True
 
@@ -153,29 +154,20 @@ async def delete_post(
 async def submit_like(
         post_id: Annotated[int, Path()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
-    # 이거 sqlite에서 작동안함. postgre에서 테스트해봐야함.
-
-    post = get_post(post_id, session)
-
-    print("user.username : ", user.username)
-    print("post.likes : ", post.likes)
+    post = await get_post(post_id, session)
 
     if user.username in post.likes:
-        print(1)
         del post.likes[post.likes.index(user.username)]
         post.like_count -= 1
     else:
-        print(2)
         post.likes.append(user.username)
         post.like_count += 1
 
-    print(post.likes)
-
     session.add(post)
-    session.commit()
+    await session.commit()
 
     return True
 
@@ -185,13 +177,13 @@ async def create_comment(
         post_id: Annotated[int, Path()],
         data: Annotated[Comment_Create, Body()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     if len(data.text) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
     
     comment = Comment(post_id=post_id, nickname=user.nickname, username=user.username, created=str(time.time()), text=data.text)
 
@@ -201,8 +193,8 @@ async def create_comment(
     session.add(user)
     session.add(post)
     session.add(comment)
-    session.commit()
-    
+    await session.commit()
+
     return True
 
 
@@ -211,10 +203,10 @@ async def read_comments(
         post_id: Annotated[int, Path()],
         offset: Annotated[int, Query(ge=0)] = 50,
         limit: Annotated[int, Query(gt=0, le=50)] = 50,
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ) -> list[Comment]:
 
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
 
     try:
         post.comments.reverse()
@@ -235,12 +227,12 @@ async def delete_comment(
         post_id: Annotated[int, Path()],
         comment_id: Annotated[int, Path()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
-    post = get_post(post_id, session)
+    post = await get_post(post_id, session)
     
-    comment = session.get(Comment, comment_id)
+    comment = await session.get(Comment, comment_id)
 
     if comment == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -253,8 +245,8 @@ async def delete_comment(
 
     session.add(post)
     session.add(user)
-    session.delete(comment)
-    session.commit()
+    await session.delete(comment)
+    await session.commit()
 
     return True
 
@@ -295,8 +287,10 @@ async def upload_image(
 
 ####################################################################
 
-def get_post(post_id: int, session):
-    post = session.get(Post, post_id)
+async def get_post(post_id: int, session):
+    statement = select(Post).where(Post.id == post_id).options(selectinload(Post.comments)).options(selectinload(Post.user))
+    result = await session.exec(statement)
+    post = result.one()
 
     if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

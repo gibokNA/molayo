@@ -1,5 +1,6 @@
 from typing import Optional, TYPE_CHECKING
-from sqlmodel import JSON, SQLModel, Field, Column, Relationship
+from sqlmodel import JSON, SQLModel, Field, Column, Relationship, PickleType
+from sqlalchemy.ext.mutable import MutableList
 
 if TYPE_CHECKING:
     from .users import User
@@ -25,7 +26,7 @@ class Post(Post_Base, table=True):
     created: Optional[str] = None
     edited: Optional[str] = None
 
-    likes: list[str] = Field(default=[], sa_column=Column(JSON)) # 이거 뭔가 작동안하는듯. 애초에 sqlite가 json 지원안하나? django에서는 됬었는데. 뭔가 지원안하나보네. postgre로 옮기기
+    likes: list[str] = Field(sa_column=Column(MutableList.as_mutable(PickleType), default=[]))
     comments: list["Comment"] = Relationship(sa_relationship_kwargs={"cascade": "delete"}, back_populates="post")
 
     view_count: int = 0

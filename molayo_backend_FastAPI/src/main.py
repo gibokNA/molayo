@@ -3,13 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.users import users_router
 from routes.posts import posts_router
 from routes.deeplearning import deeplearning_router
-from connection import conn
+from connection import init_db
 from contextlib import asynccontextmanager
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    conn()
+    await init_db()
     yield
 
 app = FastAPI(

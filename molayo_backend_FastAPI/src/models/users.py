@@ -1,6 +1,6 @@
 from typing import Optional, TYPE_CHECKING
 from pydantic import BaseModel
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, VARCHAR
 
 if TYPE_CHECKING:
     from .posts import Post, Comment
@@ -12,7 +12,7 @@ class Token(BaseModel):
 
 class User_Base(SQLModel):
     id: int
-    username: str = Field(index=True)
+    username: str = Field(sa_column=Column("username", VARCHAR, unique=True, index=True))
     nickname: str = Field()
 
     post_count: int = 0 # 정식 경로로 삭제된게 아닌 cascade로 삭제되면 데이터 무결성이 깨짐. 계속 추적하면 무결성은 챙기지만 코스트가 좀 있음.

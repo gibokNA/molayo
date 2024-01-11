@@ -1,13 +1,10 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter, UploadFile
-from routes.users import get_user
-from models.users import User
 
 import io
 import tensorflow as tf
 import numpy as np
 import PIL.Image as Image
-
 
 deeplearning_router = APIRouter()
 
@@ -47,6 +44,10 @@ async def deeplearning(
     
     content = await file.read()
 
+    return await predict(content)
+
+
+async def predict(content):
     img = Image.open(io.BytesIO(content)).resize(IMAGE_SHAPE)
     img = np.array(img)/255.0
     img = img.astype(np.float32)
@@ -58,8 +59,9 @@ async def deeplearning(
 
     predicted_class = np.argmax(output_data[0], axis=-1)
 
-    return imagenet_labels[predicted_class]
-
+    predicted_value = imagenet_labels[predicted_class]
+    
+    return predicted_value
 
 
 

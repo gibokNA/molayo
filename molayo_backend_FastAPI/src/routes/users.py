@@ -5,10 +5,12 @@ from jose import jwt
 from passlib.context import CryptContext
 from password_validator import PasswordValidator
 from sqlmodel import select
-from connection import get_session
+from connection import get_async_session
 import time, os
 from models.users import User, Token, User_Read
 from models.posts import Post_List_Read, Comment
+
+from sqlalchemy.orm import selectinload
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -26,7 +28,7 @@ password_scheme\
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token")
 
 users_router = APIRouter()
 
@@ -37,14 +39,15 @@ users_router = APIRouter()
 # 여기는 토큰받아서 그 토큰에 맞는 유저 정보를 리턴하기.
 async def get_user(
         token: Annotated[str, Depends(oauth2_scheme)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ): 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
 
-        statement = select(User).where(User.username == username)
-        user = session.exec(statement).one()
+        statement = select(User).where(User.username == username).options(selectinload(User.posts)).options(selectinload(User.comments))
+        result = await session.exec(statement)
+        user = result.one()
 
         return user
 
@@ -64,11 +67,12 @@ async def user_register(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         password2: Annotated[str, Form()],
         nickname: Annotated[str, Form()],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     statement = select(User.username)
-    all_username_list = session.exec(statement).all()
+    result = await session.exec(statement)
+    all_username_list = result.all()
 
     if form_data.username in all_username_list:
         raise HTTPException(
@@ -98,8 +102,7 @@ async def user_register(
     user = User(**user_dict)
 
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    await session.commit()
 
     return True
 
@@ -107,7 +110,7 @@ async def user_register(
 @users_router.post("/token", response_model=Token)
 async def user_login(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
     local_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -118,7 +121,8 @@ async def user_login(
     statement = select(User.hashed_password).where(User.username == form_data.username)
 
     try:
-        hashed_password = session.exec(statement).one()
+        result = await session.exec(statement)
+        hashed_password = result.one()
     except:
         raise local_exception
 
@@ -147,7 +151,7 @@ async def change_user_password(
         user: Annotated[User, Depends(get_user)],
         old_password: Annotated[str, Form()],
         new_password: Annotated[str, Form()],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
     
     if pwd_context.verify(old_password, user.hashed_password) == False:
@@ -165,7 +169,7 @@ async def change_user_password(
     user.hashed_password = pwd_context.hash(new_password)
 
     session.add(user)
-    session.commit()
+    await session.commit()
 
     return True
 
@@ -173,12 +177,12 @@ async def change_user_password(
 async def change_nickname(
         new_nickname: Annotated[str, Body()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
 
     user.nickname = new_nickname
     session.add(user)
-    session.commit()
+    await session.commit()
 
     return True
 
@@ -187,7 +191,7 @@ async def change_nickname(
 async def delete_user(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         user: Annotated[User, Depends(get_user)],
-        session=Depends(get_session)
+        session=Depends(get_async_session)
     ):
     local_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -201,8 +205,8 @@ async def delete_user(
     if pwd_context.verify(form_data.password, user.hashed_password) == False:
         raise local_exception
     
-    session.delete(user)
-    session.commit()
+    await session.delete(user)
+    await session.commit()
 
     return True
 
