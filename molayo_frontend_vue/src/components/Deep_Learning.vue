@@ -98,7 +98,7 @@ const is_now_processing = ref(false)
 
                     <hr>
 
-                    <BRow style="text-align: center;">
+                    <BRow style="text-align: center; margin-bottom: 10px;">
                         <BCol>
                             <BSpinner variant="primary" v-if="is_now_processing==true" />
                             <span v-else style="font-weight: bold; font-size: 25px;">{{ deeplearning_predict }}</span>
