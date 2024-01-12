@@ -29,5 +29,3 @@ class User(User_Base, table=True):
 
     posts: list["Post"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "delete"})
     comments: list["Comment"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "delete"})
-
-

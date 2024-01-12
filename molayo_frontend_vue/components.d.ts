@@ -35,6 +35,7 @@ declare module 'vue' {
     IBiCardList: typeof import('~icons/bi/card-list')['default']
     IBiEmojiSunglasses: typeof import('~icons/bi/emoji-sunglasses')['default']
     IBiFileExcelFill: typeof import('~icons/bi/file-excel-fill')['default']
+    IBiHandThumbsUpFill: typeof import('~icons/bi/hand-thumbs-up-fill')['default']
     IBiKeyFill: typeof import('~icons/bi/key-fill')['default']
     IBiLightningFill: typeof import('~icons/bi/lightning-fill')['default']
     IBiPostageFill: typeof import('~icons/bi/postage-fill')['default']

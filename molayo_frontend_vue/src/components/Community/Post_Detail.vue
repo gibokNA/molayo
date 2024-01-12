@@ -144,6 +144,22 @@ function comment_delete_button_clicked(comment_id: number) {
     })
 }
 
+function like_button_clicked() {
+    if (is_login.value == false) {
+        router.push('/login')
+        return
+    }
+    
+    axios.get('https://molayo.work/api/posts/' + String(id.value) + '/like', auth_header.value.data).then((res: any) => {
+        like_count.value = res.data
+    }).catch((error: any) => {
+        let error_modal_title = "추천 실패"
+        let error_modal_text = String(error.response.data.detail)
+
+        error_handler(error_modal_title, error_modal_text)
+    })
+}
+
 </script>
 
 <template>
@@ -176,6 +192,26 @@ function comment_delete_button_clicked(comment_id: number) {
                     <BRow style="margin-bottom: 70px; min-height: 400px;">
                         <BCol>
                             <QuillEditor theme="bubble" :toolbar="[]" v-model:content="body" contentType="html" :readOnly="true"/>
+                        </BCol>
+                    </BRow>
+
+                    <BRow align-h="center">
+                        <BCol cols="auto">
+                            <BCard>
+                                <BRow>
+                                    <BCol style="text-align: center; font-size: 30px; font-weight: bold;">
+                                        {{ like_count }}
+                                    </BCol>
+                                </BRow>
+
+                                <hr>
+
+                                <BRow>
+                                    <BCol>
+                                        <BButton squared variant="danger" @click="like_button_clicked"><IBiHand-Thumbs-Up-Fill/> 추천</BButton>
+                                    </BCol>
+                                </BRow>
+                            </BCard>
                         </BCol>
                     </BRow>
 

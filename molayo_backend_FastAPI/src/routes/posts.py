@@ -168,8 +168,9 @@ async def submit_like(
 
     session.add(post)
     await session.commit()
+    await session.refresh(post)
 
-    return True
+    return post.like_count
 
 
 @posts_router.post("/{post_id}/comments")

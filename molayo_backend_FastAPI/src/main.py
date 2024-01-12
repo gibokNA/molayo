@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.users import users_router
 from routes.posts import posts_router
 from routes.deeplearning import deeplearning_router
+
+""""
 from connection import init_db
 from contextlib import asynccontextmanager
 
@@ -11,8 +13,10 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
+lifespan=lifespan,
+"""
+
 app = FastAPI(
-        lifespan=lifespan,
         docs_url="/api/docs",
         redoc_url='/api/redoc',
         openapi_url='/api/openapi.json'
