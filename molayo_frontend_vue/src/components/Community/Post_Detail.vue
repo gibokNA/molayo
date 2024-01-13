@@ -56,6 +56,10 @@ axios.get('https://molayo.work/api/posts/' + String(id.value)).then((res: any) =
     setTimeout(() => {
         comments_page.value = Math.ceil(comment_count.value / 50)
     }, 500);
+
+    setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100);
 })
 
 
